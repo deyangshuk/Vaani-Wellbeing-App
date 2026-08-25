@@ -10,8 +10,13 @@ import {
   BookOpen,
   CalendarDays,
   Check,
+  CircleDollarSign,
   ChevronRight,
+  ChevronDown,
   CircleHelp,
+  Clock3,
+  Coins,
+  FileText,
   GraduationCap,
   Heart,
   Info,
@@ -20,16 +25,18 @@ import {
   MessageCircle,
   Moon,
   Play,
+  Save,
   Send,
   ShieldCheck,
   Sparkles,
-  Stethoscope,
+  Users,
+  WalletCards,
 } from 'lucide-react';
 import { Route, Switch, Router as WouterRouter, useLocation } from 'wouter';
 
 const queryClient = new QueryClient();
 
-type Flow = 'welcome' | 'privacy' | 'role' | 'school' | 'details' | 'pet' | 'professional' | 'app';
+type Flow = 'welcome' | 'privacy' | 'role' | 'school' | 'details' | 'pet' | 'caregiver-details' | 'caregiver-docs' | 'caregiver-slots' | 'caregiver-dashboard' | 'app';
 type Tab = 'calendar' | 'questionnaire' | 'chat' | 'resources';
 type Message = { id: number; from: 'vaani' | 'user'; text: string };
 
@@ -146,7 +153,7 @@ function Privacy({ onContinue }: { onContinue: () => void }) {
   );
 }
 
-function RoleChoice({ onStudent, onPsychiatrist }: { onStudent: () => void; onPsychiatrist: () => void }) {
+function RoleChoice({ onStudent, onCaregiver }: { onStudent: () => void; onCaregiver: () => void }) {
   return (
     <main className="flow-screen screen-transition">
       <div className="flow-card">
@@ -163,11 +170,11 @@ function RoleChoice({ onStudent, onPsychiatrist }: { onStudent: () => void; onPs
             <p>A private rhythm for your feelings, focus, and everyday wellbeing.</p>
             <span className="button-link">Make my space <ChevronRight size={15} /></span>
           </button>
-          <button className="role-card psychiatrist" onClick={onPsychiatrist} data-testid="button-role-psychiatrist">
-            <span className="role-icon"><Stethoscope size={23} /></span>
-            <h2 className="display-font">Psychiatrist</h2>
+          <button className="role-card caregiver" onClick={onCaregiver} data-testid="button-role-caregiver">
+            <span className="role-icon"><ShieldCheck size={23} /></span>
+            <h2 className="display-font">Caregiver</h2>
             <p>A considered companion space for supporting student wellbeing.</p>
-            <span className="button-link">Enter professional space <ChevronRight size={15} /></span>
+            <span className="button-link">Enter caregiver space <ChevronRight size={15} /></span>
           </button>
         </div>
       </div>
@@ -287,19 +294,152 @@ function PetStep({ pet, setPet, onNext, onBack }: { pet: string; setPet: (value:
   );
 }
 
-function ProfessionalNotice({ onBack }: { onBack: () => void }) {
+function CaregiverDetailsStep({ name, setName, gender, setGender, age, setAge, onNext, onBack }: {
+  name: string; setName: (value: string) => void; gender: string; setGender: (value: string) => void; age: string; setAge: (value: string) => void; onNext: () => void; onBack: () => void;
+}) {
   return (
     <main className="flow-screen screen-transition">
       <div className="flow-card">
-        <section className="onboarding-panel" style={{ textAlign: 'center' }}>
-          <div className="privacy-icon" style={{ margin: '0 auto 1.3rem' }}><Stethoscope size={27} /></div>
-          <p className="eyebrow">Professional space</p>
-          <h1 className="display-font">A thoughtful room is on its way.</h1>
-          <p style={{ marginInline: 'auto' }}>The psychiatrist experience is being shaped with care. For now, you can explore the student wellbeing space as a preview.</p>
-          <PrimaryButton onClick={onBack} testId="button-return-role">Return to role choice <ArrowLeft size={16} /></PrimaryButton>
+        <section className="onboarding-panel">
+          <ProgressRail step={1} />
+          <p className="eyebrow">Caregiver profile</p>
+          <h1 className="display-font">Tell us a little about you.</h1>
+          <p>These details help us introduce you to students with care. You can update them later.</p>
+          <div className="field-stack">
+            <label className="field-label" htmlFor="caregiver-name">Your name
+              <input id="caregiver-name" className="field-input" value={name} onChange={(event) => setName(event.target.value)} placeholder="What should students call you?" data-testid="input-caregiver-name" />
+            </label>
+            <label className="field-label" htmlFor="caregiver-gender">Gender <small>Optional</small>
+              <select id="caregiver-gender" className="field-input" value={gender} onChange={(event) => setGender(event.target.value)} data-testid="select-caregiver-gender">
+                <option value="">Prefer not to say</option><option value="woman">Woman</option><option value="man">Man</option><option value="non-binary">Non-binary</option><option value="self-describe">Self-describe</option>
+              </select>
+            </label>
+            <label className="field-label" htmlFor="caregiver-age">Age
+              <input id="caregiver-age" className="field-input" type="number" min="18" max="100" value={age} onChange={(event) => setAge(event.target.value)} placeholder="Your age" data-testid="input-caregiver-age" />
+            </label>
+          </div>
+          <div className="form-actions">
+            <button className="button-link" onClick={onBack} data-testid="button-back-caregiver-details"><ArrowLeft size={15} /> Back</button>
+            <PrimaryButton onClick={onNext} testId="button-continue-caregiver-details">Continue <ArrowRight size={16} /></PrimaryButton>
+          </div>
         </section>
       </div>
     </main>
+  );
+}
+
+function CaregiverDocuments({ documents, setDocuments, onNext, onBack }: { documents: string[]; setDocuments: (value: string[]) => void; onNext: () => void; onBack: () => void }) {
+  const labels = ['Identity proof', 'Caregiving qualification', 'Professional registration', 'Address proof', 'Profile photograph'];
+  return (
+    <main className="flow-screen screen-transition">
+      <div className="flow-card">
+        <section className="onboarding-panel">
+          <ProgressRail step={2} />
+          <p className="eyebrow">A little paperwork</p>
+          <h1 className="display-font">Help us keep this space safe.</h1>
+          <p>Upload a few documents for your caregiver profile. This preview accepts filenames only; secure document storage will be connected later.</p>
+          <div className="document-list">
+            {labels.map((label, index) => (
+              <label className="document-field" key={label} htmlFor={`caregiver-document-${index}`}>
+                <span className="document-icon"><FileText size={17} /></span>
+                <span><strong>{label}</strong><small>Choose a file</small></span>
+                <input id={`caregiver-document-${index}`} type="file" onChange={(event) => {
+                  const next = [...documents];
+                  next[index] = event.target.files?.[0]?.name || '';
+                  setDocuments(next);
+                }} data-testid={`input-caregiver-document-${index}`} />
+                <span className="document-name">{documents[index] || 'Not added'}</span>
+              </label>
+            ))}
+          </div>
+          <div className="form-actions">
+            <button className="button-link" onClick={onBack} data-testid="button-back-caregiver-documents"><ArrowLeft size={15} /> Back</button>
+            <PrimaryButton onClick={onNext} testId="button-continue-caregiver-documents">Continue <ArrowRight size={16} /></PrimaryButton>
+          </div>
+        </section>
+      </div>
+    </main>
+  );
+}
+
+function CaregiverAvailability({ slot, setSlot, onNext, onBack }: { slot: string; setSlot: (value: string) => void; onNext: () => void; onBack: () => void }) {
+  const slots = ['6 am - 12 pm', '12 pm - 4 pm', '4 pm - 8 pm', '8 pm - 12 am'];
+  return (
+    <main className="flow-screen screen-transition">
+      <div className="flow-card">
+        <section className="onboarding-panel">
+          <ProgressRail step={3} />
+          <div className="privacy-icon"><Clock3 size={27} /></div>
+          <p className="eyebrow">A flexible way to contribute</p>
+          <h1 className="display-font">This is a part-time role.</h1>
+          <p>Choose a time that fits your life. You’ll receive student concerns during the hours you select and can make space for thoughtful conversations.</p>
+          <div className="slot-grid" role="radiogroup" aria-label="Choose your part-time availability">
+            {slots.map((item) => <button key={item} className={`slot-card ${slot === item ? 'selected' : ''}`} onClick={() => setSlot(item)} role="radio" aria-checked={slot === item} data-testid={`button-slot-${item.replaceAll(' ', '-').replaceAll('am', 'am').replaceAll('pm', 'pm')}`}><Clock3 size={18} /><span>{item}</span>{slot === item && <Check size={16} />}</button>)}
+          </div>
+          <div className="form-actions">
+            <button className="button-link" onClick={onBack} data-testid="button-back-caregiver-slots"><ArrowLeft size={15} /> Back</button>
+            <PrimaryButton onClick={onNext} testId="button-confirm-caregiver-slot">Confirm availability <ArrowRight size={16} /></PrimaryButton>
+          </div>
+        </section>
+      </div>
+    </main>
+  );
+}
+
+function CaregiverDashboard({ name, slot }: { name: string; slot: string }) {
+  const [tab, setTab] = useState<'students' | 'credits'>('students');
+  const [openStudent, setOpenStudent] = useState<number | null>(0);
+  const [notes, setNotes] = useState<Record<number, string>>({});
+  const [currency, setCurrency] = useState('INR');
+  const [redeemed, setRedeemed] = useState(false);
+  const students = [
+    { name: 'Aarav Mehta', detail: 'Year 2 · AJPS', mood: 'Feeling stretched by exams', feedback: '“I felt heard and less alone after our conversation.”' },
+    { name: 'Mira Shah', detail: 'Year 1 · Lakeside College', mood: 'Finding it hard to settle in', feedback: '“The small plan we made helped me take the next step.”' },
+    { name: 'Kabir Rao', detail: 'Year 3 · Mitra Institute', mood: 'Looking for a calmer routine', feedback: '“I appreciated having a quiet place to talk.”' },
+  ];
+  const saveNote = (index: number) => setNotes((current) => ({ ...current, [index]: current[index] || 'Note saved for this student.' }));
+  return (
+    <div className="app-layout caregiver-app">
+      <aside className="app-sidebar">
+        <Brand />
+        <div className="sidebar-label">Caregiver space</div>
+        <div className="caregiver-side-intro"><span className="profile-initial">{(name || 'C').slice(0, 1).toUpperCase()}</span><strong>{name || 'Your profile'}</strong><small>{slot || 'Part-time availability'}</small></div>
+        <nav className="nav-list" aria-label="Caregiver dashboard navigation">
+          <button className={`nav-item ${tab === 'students' ? 'active' : ''}`} onClick={() => setTab('students')} data-testid="button-caregiver-tab-students"><Users size={17} /><span>My students</span></button>
+          <button className={`nav-item ${tab === 'credits' ? 'active' : ''}`} onClick={() => setTab('credits')} data-testid="button-caregiver-tab-credits"><Coins size={17} /><span>Credits</span></button>
+        </nav>
+        <p className="sidebar-quiet">Thank you for making room for someone else.</p>
+      </aside>
+      <main className="app-main">
+        <div className="app-topbar"><div className="mobile-brand"><Brand compact /></div><div className="profile-chip"><span className="profile-initial">{(name || 'C').slice(0, 1).toUpperCase()}</span><span>{name || 'Caregiver'}</span></div></div>
+        {tab === 'students' ? (
+          <div className="screen-transition">
+            <div className="page-heading"><div><p className="eyebrow">Caregiver dashboard</p><h1 className="display-font">People placed in your care.</h1><p>These students were gently matched to you by Vaani’s support system.</p></div><div className="dashboard-stat"><span>Available today</span><strong>3</strong><small>student concerns</small></div></div>
+            <div className="student-list">
+              {students.map((student, index) => <article className="student-row" key={student.name}>
+                <button className="student-row-head" onClick={() => setOpenStudent(openStudent === index ? null : index)} aria-expanded={openStudent === index} data-testid={`button-student-${index}`}><span className="student-avatar">{student.name.slice(0, 1)}</span><span className="student-summary"><strong>{student.name}</strong><small>{student.detail}</small></span><span className="student-mood">{student.mood}</span><ChevronDown size={18} className={openStudent === index ? 'rotate-180' : ''} /></button>
+                {openStudent === index && <div className="student-row-detail">
+                  <div className="feedback-block"><span className="eyebrow">Student feedback</span><p>{student.feedback}</p></div>
+                  <label className="field-label" htmlFor={`student-note-${index}`}>Your private notes
+                    <textarea id={`student-note-${index}`} className="field-input note-input" value={notes[index] || ''} onChange={(event) => setNotes((current) => ({ ...current, [index]: event.target.value }))} placeholder="Add a note after your conversation..." data-testid={`textarea-student-note-${index}`} />
+                  </label>
+                  <button className="button-link" onClick={() => saveNote(index)} data-testid={`button-save-note-${index}`}><Save size={15} /> Save note</button>
+                </div>}
+              </article>)}
+            </div>
+          </div>
+        ) : (
+          <div className="screen-transition">
+            <div className="page-heading"><div><p className="eyebrow">Your contribution</p><h1 className="display-font">Credits that come from care.</h1><p>See what you’ve earned by showing up for student concerns.</p></div><div className="credits-total"><Coins size={20} /><span>Total credits</span><strong>240</strong></div></div>
+            <div className="credits-grid">
+              <section className="content-card credit-value-card"><div className="card-heading"><h2>Current value</h2><WalletCards size={19} /></div><div className="currency-line"><strong>{currency === 'INR' ? '₹1,920' : currency === 'USD' ? '$23.04' : '€21.42'}</strong><select value={currency} onChange={(event) => setCurrency(event.target.value)} aria-label="Choose currency" data-testid="select-credit-currency"><option value="INR">INR</option><option value="USD">USD</option><option value="EUR">EUR</option></select></div><p>1 credit = {currency === 'INR' ? '₹8' : currency === 'USD' ? '$0.096' : '€0.089'}</p><button className="button-primary redeem-button" onClick={() => setRedeemed(true)} data-testid="button-redeem-credits"><CircleDollarSign size={17} /> {redeemed ? 'Redemption requested' : 'Redeem as money'}</button></section>
+              <section className="content-card"><div className="card-heading"><h2>Earning history</h2><span>Recent</span></div><div className="earning-history"><div><span>Student concern attended</span><strong>+80 credits</strong><small>Today · Aarav Mehta</small></div><div><span>Student concern attended</span><strong>+80 credits</strong><small>Yesterday · Mira Shah</small></div><div><span>Student concern attended</span><strong>+80 credits</strong><small>18 Mar · Kabir Rao</small></div></div></section>
+            </div>
+            <div className="demo-note"><Info size={15} /><span>Credits and redemption are demo values for now. Payments will be connected in a later version.</span></div>
+          </div>
+        )}
+      </main>
+    </div>
   );
 }
 
@@ -466,11 +606,19 @@ function Home() {
   const [gender, setGender] = useState('');
   const [age, setAge] = useState('');
   const [pet, setPet] = useState('Baku');
+  const [caregiverName, setCaregiverName] = useState('');
+  const [caregiverGender, setCaregiverGender] = useState('');
+  const [caregiverAge, setCaregiverAge] = useState('');
+  const [caregiverDocuments, setCaregiverDocuments] = useState<string[]>(['', '', '', '', '']);
+  const [caregiverSlot, setCaregiverSlot] = useState('');
 
   if (flow === 'welcome') return <Welcome onContinue={() => setFlow('privacy')} />;
   if (flow === 'privacy') return <Privacy onContinue={() => setFlow('role')} />;
-  if (flow === 'role') return <RoleChoice onStudent={() => setFlow('school')} onPsychiatrist={() => setFlow('professional')} />;
-  if (flow === 'professional') return <ProfessionalNotice onBack={() => setFlow('role')} />;
+  if (flow === 'role') return <RoleChoice onStudent={() => setFlow('school')} onCaregiver={() => setFlow('caregiver-details')} />;
+  if (flow === 'caregiver-details') return <CaregiverDetailsStep name={caregiverName} setName={setCaregiverName} gender={caregiverGender} setGender={setCaregiverGender} age={caregiverAge} setAge={setCaregiverAge} onNext={() => setFlow('caregiver-docs')} onBack={() => setFlow('role')} />;
+  if (flow === 'caregiver-docs') return <CaregiverDocuments documents={caregiverDocuments} setDocuments={setCaregiverDocuments} onNext={() => setFlow('caregiver-slots')} onBack={() => setFlow('caregiver-details')} />;
+  if (flow === 'caregiver-slots') return <CaregiverAvailability slot={caregiverSlot} setSlot={setCaregiverSlot} onNext={() => setFlow('caregiver-dashboard')} onBack={() => setFlow('caregiver-docs')} />;
+  if (flow === 'caregiver-dashboard') return <CaregiverDashboard name={caregiverName} slot={caregiverSlot} />;
   if (flow === 'school') return <SchoolStep school={school} setSchool={setSchool} admission={admission} setAdmission={setAdmission} onNext={() => setFlow('details')} onBack={() => setFlow('role')} onSkip={() => setFlow('details')} />;
   if (flow === 'details') return <DetailsStep name={name} setName={setName} gender={gender} setGender={setGender} age={age} setAge={setAge} onNext={() => setFlow('pet')} onBack={() => setFlow('school')} />;
   if (flow === 'pet') return <PetStep pet={pet} setPet={setPet} onNext={() => setFlow('app')} onBack={() => setFlow('details')} />;
