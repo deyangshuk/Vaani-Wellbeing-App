@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Vaani Wellbeing"
+description = "A gentle mental health wellbeing app for students and psychiatrists, with privacy-first onboarding, daily reflection check-ins, virtual pet companionship, chat, and self-help resources."
+version = "1.0.0"
+id = "artifacts/vaani-wellbeing"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 21603
+
+[services.development]
+run = "pnpm --filter @workspace/vaani-wellbeing run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/vaani-wellbeing", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/vaani-wellbeing/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "21603"
+BASE_PATH = "/"
