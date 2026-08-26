@@ -42,7 +42,7 @@ import baihuArtwork from '@assets/baihu_1787681526736.webp';
 
 const queryClient = new QueryClient();
 
-type Flow = 'welcome' | 'privacy' | 'role' | 'school' | 'details' | 'pet' | 'caregiver-details' | 'caregiver-docs' | 'caregiver-slots' | 'caregiver-dashboard' | 'app';
+type Flow = 'welcome' | 'privacy' | 'login' | 'role' | 'school' | 'details' | 'pet' | 'caregiver-details' | 'caregiver-docs' | 'caregiver-slots' | 'caregiver-dashboard' | 'app';
 type Tab = 'calendar' | 'questionnaire' | 'chat' | 'resources';
 type Message = { id: number; from: 'vaani' | 'user'; text: string };
 
@@ -128,9 +128,6 @@ function Welcome({ onContinue }: { onContinue: () => void }) {
         <Brand />
         <h1 className="welcome-title display-font">Vaani</h1>
         <p className="welcome-tagline display-font">A softer place to meet yourself.</p>
-        <PrimaryButton onClick={onContinue} testId="button-enter-vaani">
-          Enter your space <ArrowRight size={16} />
-        </PrimaryButton>
         <p className="welcome-subline">A private pause for student life</p>
       </div>
     </main>
@@ -168,6 +165,48 @@ function Privacy({ onContinue }: { onContinue: () => void }) {
             </PrimaryButton>
           </section>
         </div>
+      </div>
+    </main>
+  );
+}
+
+function Login({ phone, setPhone, email, setEmail, role, setRole, onLogin, onSignUp }: {
+  phone: string;
+  setPhone: (value: string) => void;
+  email: string;
+  setEmail: (value: string) => void;
+  role: 'student' | 'caregiver';
+  setRole: (value: 'student' | 'caregiver') => void;
+  onLogin: () => void;
+  onSignUp: () => void;
+}) {
+  return (
+    <main className="flow-screen screen-transition">
+      <div className="flow-card">
+        <section className="onboarding-panel">
+          <Brand />
+          <p className="eyebrow" style={{ marginTop: '2.8rem' }}>Welcome back</p>
+          <h1 className="display-font">Return to your space.</h1>
+          <p>Choose how you are joining Vaani, then use either detail to continue.</p>
+          <div className="field-stack">
+            <label className="field-label" htmlFor="login-role">I am a
+              <select id="login-role" className="field-input" value={role} onChange={(event) => setRole(event.target.value as 'student' | 'caregiver')} data-testid="select-login-role">
+                <option value="student">Student</option>
+                <option value="caregiver">Caregiver</option>
+              </select>
+            </label>
+            <label className="field-label" htmlFor="login-phone">Phone Number
+              <input id="login-phone" className="field-input" type="tel" value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="Enter your phone number" data-testid="input-login-phone" />
+            </label>
+            <label className="field-label" htmlFor="login-email">Email Id
+              <input id="login-email" className="field-input" type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="Enter your email address" data-testid="input-login-email" />
+            </label>
+          </div>
+          <div className="form-actions">
+            <button className="button-link" onClick={onSignUp} data-testid="button-login-sign-up">Sign Up</button>
+            <PrimaryButton onClick={onLogin} testId="button-login">Log In <ArrowRight size={16} /></PrimaryButton>
+          </div>
+        </section>
       </div>
     </main>
   );
@@ -463,7 +502,7 @@ function CaregiverDashboard({ name, slot }: { name: string; slot: string }) {
   );
 }
 
-function Sidebar({ activeTab, onTab }: { activeTab: Tab; onTab: (tab: Tab) => void }) {
+function Sidebar({ activeTab, onTab, pet }: { activeTab: Tab; onTab: (tab: Tab) => void; pet: string }) {
   const items: { id: Tab; label: string; icon: typeof CalendarDays }[] = [
     { id: 'calendar', label: 'Calendar', icon: CalendarDays },
     { id: 'questionnaire', label: 'Daily questionnaire', icon: CircleHelp },
@@ -475,7 +514,7 @@ function Sidebar({ activeTab, onTab }: { activeTab: Tab; onTab: (tab: Tab) => vo
       <Brand />
       <div className="sidebar-label">Your wellbeing</div>
       <nav className="nav-list" aria-label="Main navigation">
-        {items.map(({ id, label, icon: Icon }) => <button key={id} className={`nav-item ${activeTab === id ? 'active' : ''}`} onClick={() => onTab(id)} aria-current={activeTab === id ? 'page' : undefined} data-testid={`button-tab-${id}`}><Icon size={17} /><span>{label}</span></button>)}
+        {items.map(({ id, label, icon: Icon }) => <button key={id} className={`nav-item ${activeTab === id ? 'active' : ''}`} onClick={() => onTab(id)} aria-current={activeTab === id ? 'page' : undefined} data-testid={`button-tab-${id}`}><Icon size={17} /><span>{id === 'chat' ? `Chat with ${pet}` : label}</span></button>)}
       </nav>
       <p className="sidebar-quiet">A private space, held gently.<br />Everything here stays local for now.</p>
     </aside>
@@ -686,7 +725,7 @@ function WellbeingApp({ name, pet }: { name: string; pet: string }) {
       : activeTab === 'chat' ? <ChatView pet={pet} /> : <ResourcesView />;
   return (
     <div className="app-layout vaani-app">
-      <Sidebar activeTab={activeTab} onTab={setActiveTab} />
+      <Sidebar activeTab={activeTab} onTab={setActiveTab} pet={pet} />
       <main className="app-main">
         <div className="app-topbar"><div className="mobile-brand"><Brand compact /></div><div className="profile-chip"><span className="profile-initial">{(name || 'S').slice(0, 1).toUpperCase()}</span><span>{name || 'Your space'}</span></div></div>
         <PetGuide pet={pet} activeTab={activeTab} />
@@ -698,6 +737,9 @@ function WellbeingApp({ name, pet }: { name: string; pet: string }) {
 
 function Home() {
   const [flow, setFlow] = useState<Flow>('welcome');
+  const [loginPhone, setLoginPhone] = useState('');
+  const [loginEmail, setLoginEmail] = useState('');
+  const [loginRole, setLoginRole] = useState<'student' | 'caregiver'>('student');
   const [school, setSchool] = useState('');
   const [admission, setAdmission] = useState('');
   const [name, setName] = useState('');
@@ -711,7 +753,8 @@ function Home() {
   const [caregiverSlot, setCaregiverSlot] = useState('');
 
   if (flow === 'welcome') return <Welcome onContinue={() => setFlow('privacy')} />;
-  if (flow === 'privacy') return <Privacy onContinue={() => setFlow('role')} />;
+  if (flow === 'privacy') return <Privacy onContinue={() => setFlow('login')} />;
+  if (flow === 'login') return <Login phone={loginPhone} setPhone={setLoginPhone} email={loginEmail} setEmail={setLoginEmail} role={loginRole} setRole={setLoginRole} onLogin={() => setFlow(loginRole === 'student' ? 'app' : 'caregiver-dashboard')} onSignUp={() => setFlow('role')} />;
   if (flow === 'role') return <RoleChoice onStudent={() => setFlow('school')} onCaregiver={() => setFlow('caregiver-details')} />;
   if (flow === 'caregiver-details') return <CaregiverDetailsStep name={caregiverName} setName={setCaregiverName} gender={caregiverGender} setGender={setCaregiverGender} age={caregiverAge} setAge={setCaregiverAge} onNext={() => setFlow('caregiver-docs')} onBack={() => setFlow('role')} />;
   if (flow === 'caregiver-docs') return <CaregiverDocuments documents={caregiverDocuments} setDocuments={setCaregiverDocuments} onNext={() => setFlow('caregiver-slots')} onBack={() => setFlow('caregiver-details')} />;
