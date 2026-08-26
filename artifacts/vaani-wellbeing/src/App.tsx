@@ -33,6 +33,10 @@ import {
   WalletCards,
 } from 'lucide-react';
 import { Route, Switch, Router as WouterRouter, useLocation } from 'wouter';
+import bakuArtwork from '@assets/7e18e83aec3d35195120a938bd13fb17_1787681321007.jpg';
+import garudaArtwork from '@assets/ho77_1787681461963.jpg';
+import kitsuneArtwork from '@assets/white-ninetailed-fox-stands-on-260nw-2496405175_1787681498807.jpg';
+import baihuArtwork from '@assets/baihu_1787681526736.webp';
 
 const queryClient = new QueryClient();
 
@@ -65,6 +69,20 @@ const starterPrompts = [
   'Help me make a gentle plan for today',
   'I would like to talk something through',
 ];
+
+const petArtwork: Record<string, string> = {
+  Baku: bakuArtwork,
+  Garuda: garudaArtwork,
+  Kitsune: kitsuneArtwork,
+  Baihu: baihuArtwork,
+};
+
+const petGuidance: Record<string, { welcome: string; tips: Record<Tab, string> }> = {
+  Baku: { welcome: 'I am Baku. I will help you make a little room for what is on your mind.', tips: { calendar: 'Let us start with one small pause today. The calendar helps you notice your rhythm.', questionnaire: 'There is no right answer here. I will stay beside you while you check in.', chat: 'You can say things here exactly as they are. We can take them one breath at a time.', resources: 'When you need extra support, I can help you find a quiet book or a guided pause.' } },
+  Garuda: { welcome: 'I am Garuda. I will help you find steadiness when your day feels full.', tips: { calendar: 'A steady rhythm is built from small returns. Your calendar keeps those returns visible.', questionnaire: 'Answer with your first instinct. Noticing how you feel is already a brave step.', chat: 'You do not have to carry a difficult thought alone. Tell me what feels heavy.', resources: 'A guide or meditation can be a useful landing place between conversations.' } },
+  Kitsune: { welcome: 'I am Kitsune. I will help you notice gentle possibilities in your day.', tips: { calendar: 'Your calendar is a soft record of the moments you chose yourself.', questionnaire: 'Let us be curious, not critical. Every answer gives you a little more understanding.', chat: 'Bring me a question, a feeling, or even a jumble of thoughts. We can untangle them slowly.', resources: 'There are small, kind tools here for when you want to explore at your own pace.' } },
+  Baihu: { welcome: 'I am Baihu. I will help you feel held while you care for your inner world.', tips: { calendar: 'The calendar is here to remind you that showing up can be quiet and still count.', questionnaire: 'Take your time. This check-in belongs to you and there is nothing to perform.', chat: 'This is a safe first place to put words to a feeling. I am listening.', resources: 'You can return to these books and meditations whenever you need a gentler next step.' } },
+};
 
 function Brand({ compact = false }: { compact?: boolean }) {
   return (
@@ -264,7 +282,7 @@ function PetStep({ pet, setPet, onNext, onBack }: { pet: string; setPet: (value:
   const pets = [
     { name: 'Baku', quality: 'Curious and bright' },
     { name: 'Garuda', quality: 'Brave and grounding' },
-    { name: 'Zenko', quality: 'Calm and observant' },
+    { name: 'Kitsune', quality: 'Calm and observant' },
     { name: 'Baihu', quality: 'Quietly protective' },
   ];
   return (
@@ -278,7 +296,7 @@ function PetStep({ pet, setPet, onNext, onBack }: { pet: string; setPet: (value:
           <div className="pet-grid" role="radiogroup" aria-label="Choose a virtual companion">
             {pets.map((item) => (
               <button key={item.name} className={`pet-choice ${pet === item.name ? 'selected' : ''}`} onClick={() => setPet(item.name)} role="radio" aria-checked={pet === item.name} data-testid={`button-pet-${item.name.toLowerCase()}`}>
-                <span className="pet-avatar" aria-hidden="true">{item.name.slice(0, 1)}</span>
+                <span className="pet-avatar"><img src={petArtwork[item.name]} alt="" /></span>
                 <span><strong>{item.name}</strong><span>{item.quality}</span></span>
                 {pet === item.name ? <Check size={16} aria-label="Selected" /> : null}
               </button>
@@ -578,6 +596,20 @@ function ResourcesView() {
   );
 }
 
+function PetGuide({ pet, activeTab }: { pet: string; activeTab: Tab }) {
+  const guide = petGuidance[pet] || petGuidance.Baku;
+  return (
+    <section className="pet-guide" aria-label={`${pet} feature guide`}>
+      <img src={petArtwork[pet]} alt="" className="pet-guide-image" />
+      <div className="pet-guide-copy">
+        <div className="pet-guide-name"><span className="eyebrow">Your companion</span><strong>{pet}</strong></div>
+        <p>{activeTab === 'calendar' ? guide.welcome : guide.tips[activeTab]}</p>
+        <span className="pet-guide-caption">A gentle note from {pet}</span>
+      </div>
+    </section>
+  );
+}
+
 function WellbeingApp({ name, pet }: { name: string; pet: string }) {
   const [activeTab, setActiveTab] = useState<Tab>('calendar');
   const [answersState, setAnswersState] = useState<Record<number, string>>({});
@@ -592,6 +624,7 @@ function WellbeingApp({ name, pet }: { name: string; pet: string }) {
       <Sidebar activeTab={activeTab} onTab={setActiveTab} />
       <main className="app-main">
         <div className="app-topbar"><div className="mobile-brand"><Brand compact /></div><div className="profile-chip"><span className="profile-initial">{(name || 'S').slice(0, 1).toUpperCase()}</span><span>{name || 'Your space'}</span></div></div>
+        <PetGuide pet={pet} activeTab={activeTab} />
         {tabContent}
       </main>
     </div>
