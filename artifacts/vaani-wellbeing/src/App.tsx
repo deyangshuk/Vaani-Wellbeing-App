@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { Toaster } from '@/components/ui/toaster';
@@ -25,11 +25,13 @@ import {
   MessageCircle,
   Moon,
   Play,
+  Square,
   Save,
   Send,
   ShieldCheck,
   Sparkles,
   Users,
+  Video,
   WalletCards,
 } from 'lucide-react';
 import { Route, Switch, Router as WouterRouter, useLocation } from 'wouter';
@@ -45,23 +47,23 @@ type Tab = 'calendar' | 'questionnaire' | 'chat' | 'resources';
 type Message = { id: number; from: 'vaani' | 'user'; text: string };
 
 const questions = [
-  'How are you arriving in this moment?',
-  'What has been taking up the most space in your mind today?',
-  'How rested do you feel after your sleep?',
-  'Did you make a little room for yourself today?',
-  'How connected do you feel to the people around you?',
-  'What is one thing you would like to be gentle with today?',
-  'What would feel supportive before your day ends?',
+  'How did I sleep last night?',
+  'What is my current energy level?',
+  'What dominant emotion am I feeling right now?',
+  'Am I feeling calm or overwhelmed today?',
+  'Have I connected with anyone today?',
+  'How am I reacting to daily stressors?',
+  'Did I experience any moments of joy?',
 ];
 
 const answers = [
-  ['Quiet and steady', 'A little tender', 'Full of thoughts', 'I am not sure yet'],
-  ['My studies', 'Home or relationships', 'My body and energy', 'Nothing in particular'],
-  ['Well rested', 'Somewhat rested', 'A little tired', 'Very tired'],
-  ['Yes, I did', 'A small moment', 'Not yet', 'I would like to'],
-  ['Very connected', 'Close to a few people', 'A little distant', 'I need more support'],
-  ['My pace', 'A difficult feeling', 'My expectations', 'A conversation'],
-  ['A slower evening', 'A good meal', 'A kind conversation', 'Some quiet'],
+  ['Very well', 'Pretty well', 'Restlessly', 'Not at all'],
+  ['Full of energy', 'Steady', 'A little low', 'Running on empty'],
+  ['Happy', 'Calm', 'Sad', 'Anxious'],
+  ['Calm', 'Mostly okay', 'A little overwhelmed', 'Very overwhelmed'],
+  ['Yes, meaningfully', 'A quick message', 'Not yet', 'I would like to'],
+  ['I am managing', 'I am taking a pause', 'I am avoiding things', 'I feel stretched'],
+  ['Yes, a small moment', 'A few sparks', 'Not today', 'I am not sure yet'],
 ];
 
 const starterPrompts = [
@@ -517,10 +519,71 @@ function CalendarView({ name, pet, onTab }: { name: string; pet: string; onTab: 
   );
 }
 
-function QuestionnaireView({ answersState, setAnswersState, completed, setCompleted }: { answersState: Record<number, string>; setAnswersState: (next: Record<number, string>) => void; completed: boolean; setCompleted: (value: boolean) => void }) {
+function VideoJournal({ pet }: { pet: string }) {
+  const recorderRef = useRef<MediaRecorder | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const [recording, setRecording] = useState(false);
+  const [videoUrl, setVideoUrl] = useState('');
+  const [error, setError] = useState('');
+
+  useEffect(() => () => {
+    recorderRef.current?.stop();
+    streamRef.current?.getTracks().forEach((track) => track.stop());
+    if (videoUrl) window.URL.revokeObjectURL(videoUrl);
+  }, [videoUrl]);
+
+  const startRecording = async () => {
+    setError('');
+    if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) {
+      setError('Video recording is not supported in this browser.');
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      const chunks: Blob[] = [];
+      const recorder = new MediaRecorder(stream);
+      streamRef.current = stream;
+      recorderRef.current = recorder;
+      recorder.ondataavailable = (event) => { if (event.data.size > 0) chunks.push(event.data); };
+      recorder.onstop = () => {
+        const nextUrl = window.URL.createObjectURL(new Blob(chunks, { type: 'video/webm' }));
+        setVideoUrl((current) => { if (current) window.URL.revokeObjectURL(current); return nextUrl; });
+        stream.getTracks().forEach((track) => track.stop());
+        setRecording(false);
+      };
+      recorder.start();
+      setRecording(true);
+    } catch {
+      setError('Camera access was not granted. You can try again whenever you feel ready.');
+    }
+  };
+
+  const stopRecording = () => recorderRef.current?.stop();
+  const clearRecording = () => { if (videoUrl) window.URL.revokeObjectURL(videoUrl); setVideoUrl(''); setError(''); };
+
+  return (
+    <section className="video-journal content-card" aria-labelledby="video-journal-title">
+      <div className="video-journal-art"><Video size={24} /></div>
+      <div className="video-journal-copy">
+        <span className="eyebrow">A private voice note</span>
+        <h2 id="video-journal-title" className="display-font">Tell {pet || 'your companion'} about your day.</h2>
+        <p>Tap the box to record a short video of yourself speaking freely. It stays on this device in this demo.</p>
+        {error ? <p className="video-error" role="alert">{error}</p> : null}
+        {videoUrl ? <div className="video-result"><video src={videoUrl} controls aria-label="Your recorded day reflection" /><button className="button-link" onClick={clearRecording} data-testid="button-retake-video">Record again</button></div> : (
+          <button className={`record-box ${recording ? 'recording' : ''}`} onClick={recording ? stopRecording : startRecording} data-testid="button-record-day-video">
+            <span className="record-box-icon">{recording ? <Square size={20} /> : <Video size={22} />}</span>
+            <span><strong>{recording ? 'Tap to finish recording' : 'Record yourself speaking'}</strong><small>{recording ? 'Your companion is listening' : 'A 2-minute reflection, just for you'}</small></span>
+          </button>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function QuestionnaireView({ answersState, setAnswersState, completed, setCompleted, pet }: { answersState: Record<number, string>; setAnswersState: (next: Record<number, string>) => void; completed: boolean; setCompleted: (value: boolean) => void; pet: string }) {
   const [current, setCurrent] = useState(0);
   if (completed) {
-    return <div className="screen-transition"><div className="page-heading"><div><p className="eyebrow">Daily questionnaire</p><h1 className="display-font">You made a little room.</h1></div></div><section className="content-card completion-card"><div className="completion-seal"><Check size={27} /></div><h2 className="display-font">Well noticed.</h2><p>There is no score to this. Just seven moments of checking in with yourself. Your three-day streak is still glowing.</p><PrimaryButton onClick={() => { setCompleted(false); setCurrent(0); }} testId="button-revisit-questionnaire">Revisit my answers <ArrowRight size={16} /></PrimaryButton></section></div>;
+    return <div className="screen-transition"><div className="page-heading"><div><p className="eyebrow">Daily questionnaire</p><h1 className="display-font">You made a little room.</h1></div></div><section className="content-card completion-card"><div className="completion-seal"><Check size={27} /></div><h2 className="display-font">Well noticed.</h2><p>There is no score to this. Just seven moments of checking in with yourself. Your three-day streak is still glowing.</p><PrimaryButton onClick={() => { setCompleted(false); setCurrent(0); }} testId="button-revisit-questionnaire">Revisit my answers <ArrowRight size={16} /></PrimaryButton></section><VideoJournal pet={pet} /></div>;
   }
   const selected = answersState[current];
   const choose = (value: string) => setAnswersState({ ...answersState, [current]: value });
@@ -536,12 +599,14 @@ function QuestionnaireView({ answersState, setAnswersState, completed, setComple
         </div>
         <div className="question-footer"><div className="question-progress" aria-label={`${current + 1} of ${questions.length} questions`}><i style={{ width: `${((current + 1) / questions.length) * 100}%` }} /></div><PrimaryButton onClick={next} testId="button-next-question" disabled={!selected}>{current === questions.length - 1 ? 'Finish check-in' : 'Next'} <ArrowRight size={15} /></PrimaryButton></div>
       </section>
+      <VideoJournal pet={pet} />
     </div>
   );
 }
 
-function ChatView() {
-  const [messages, setMessages] = useState<Message[]>([{ id: 1, from: 'vaani', text: 'Hi. I’m here with you. You can start wherever feels easiest.' }]);
+function ChatView({ pet }: { pet: string }) {
+  const guide = petGuidance[pet] || petGuidance.Baku;
+  const [messages, setMessages] = useState<Message[]>([{ id: 1, from: 'vaani', text: `Hi, I’m ${pet}. ${guide.tips.chat}` }]);
   const [draft, setDraft] = useState('');
   const [thinking, setThinking] = useState(false);
   const send = (text = draft) => {
@@ -551,15 +616,15 @@ function ChatView() {
     setDraft('');
     setThinking(true);
     window.setTimeout(() => {
-      setMessages((current) => [...current, { id: Date.now() + 1, from: 'vaani', text: clean.toLowerCase().includes('overwhelmed') ? 'That sounds like a lot to hold. We can take one small piece at a time. What feels most urgent right now?' : 'Thank you for putting that into words. Would it help to stay with the feeling, or look for one small next step?' }]);
+      setMessages((current) => [...current, { id: Date.now() + 1, from: 'vaani', text: clean.toLowerCase().includes('overwhelmed') ? `${pet} says: That sounds like a lot to hold. We can take one small piece at a time. What feels most urgent right now?` : `${pet} says: Thank you for putting that into words. Would it help to stay with the feeling, or look for one small next step?` }]);
       setThinking(false);
     }, 650);
   };
   return (
     <div className="screen-transition">
-      <div className="page-heading"><div><p className="eyebrow">A quiet conversation</p><h1 className="display-font">Talk it through.</h1><p>Vaani listens without rushing you. This is a local demo chat, not a crisis or medical service.</p></div></div>
+      <div className="page-heading"><div><p className="eyebrow">A quiet conversation with {pet}</p><h1 className="display-font">Talk it through.</h1><p>{pet} listens without rushing you. This is a local demo chat, not a crisis or medical service.</p></div></div>
       <div className="chat-layout">
-        <section className="content-card chat-window" aria-label="Conversation with Vaani">
+        <section className="content-card chat-window" aria-label={`Conversation with ${pet}`}>
           <div className="chat-messages" aria-live="polite">
             {messages.map((message) => <div key={message.id} className={`chat-message ${message.from === 'user' ? 'user' : ''}`} data-testid={`message-${message.from}-${message.id}`}>{message.text}</div>)}
             {thinking ? <div className="chat-message" data-testid="status-vaani-thinking">Taking a breath before I reply...</div> : null}
@@ -617,8 +682,8 @@ function WellbeingApp({ name, pet }: { name: string; pet: string }) {
   const tabContent = activeTab === 'calendar'
     ? <CalendarView name={name} pet={pet} onTab={setActiveTab} />
     : activeTab === 'questionnaire'
-      ? <QuestionnaireView answersState={answersState} setAnswersState={setAnswersState} completed={completed} setCompleted={setCompleted} />
-      : activeTab === 'chat' ? <ChatView /> : <ResourcesView />;
+      ? <QuestionnaireView answersState={answersState} setAnswersState={setAnswersState} completed={completed} setCompleted={setCompleted} pet={pet} />
+      : activeTab === 'chat' ? <ChatView pet={pet} /> : <ResourcesView />;
   return (
     <div className="app-layout vaani-app">
       <Sidebar activeTab={activeTab} onTab={setActiveTab} />

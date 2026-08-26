@@ -194,6 +194,20 @@
 .pet-guide-name strong { color: #815656; font-family: var(--app-font-serif); font-size: 1.35rem; }
 .pet-guide-copy p { margin: .25rem 0 .2rem; color: hsl(var(--foreground)); font-family: var(--app-font-serif); font-size: 1rem; line-height: 1.25; }
 .pet-guide-caption { color: hsl(var(--muted-foreground)); font-size: .65rem; }
+.video-journal { display: grid; grid-template-columns: 4.2rem minmax(0, 1fr); gap: 1rem; align-items: start; max-width: 900px; margin-top: 1rem; background: rgba(249,246,239,.82); }
+.video-journal-art { display: grid; place-items: center; width: 4.2rem; height: 4.2rem; border-radius: 1.15rem; background: rgba(210,152,48,.18); color: #8c6125; }
+.video-journal-copy h2 { margin: .35rem 0 .45rem; font-size: 1.9rem; line-height: .95; }
+.video-journal-copy > p { max-width: 38rem; margin: 0 0 .9rem; color: hsl(var(--muted-foreground)); font-size: .77rem; line-height: 1.5; }
+.record-box { display: flex; align-items: center; gap: .75rem; width: 100%; padding: .9rem 1rem; border: 1px dashed rgba(149,96,95,.55); border-radius: 1rem; background: rgba(220,161,161,.14); color: hsl(var(--foreground)); text-align: left; transition: background .2s ease, border-color .2s ease, transform .2s ease; }
+.record-box:hover { transform: translateY(-2px); border-color: #D29830; background: rgba(220,161,161,.24); }
+.record-box.recording { border-color: #95605f; background: rgba(210,152,48,.19); }
+.record-box-icon { display: grid; place-items: center; width: 2.4rem; height: 2.4rem; border-radius: .75rem; background: #D29830; color: #302411; }
+.record-box strong, .record-box small { display: block; }
+.record-box strong { font-size: .78rem; }
+.record-box small { margin-top: .2rem; color: hsl(var(--muted-foreground)); font-size: .67rem; }
+.video-error { color: #95605f !important; }
+.video-result { display: grid; gap: .5rem; }
+.video-result video { width: min(100%, 420px); max-height: 250px; border-radius: .9rem; background: #2f2b27; }
 
 .app-layout { min-height: 100dvh; display: grid; grid-template-columns: 248px minmax(0, 1fr); }
 .app-sidebar { background: rgba(235,224,208,.55); border-right: 1px solid hsl(var(--border)); padding: 2rem 1.15rem; display: flex; flex-direction: column; }
