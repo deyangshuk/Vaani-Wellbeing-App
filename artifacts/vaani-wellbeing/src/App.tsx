@@ -467,6 +467,12 @@ function CaregiverDashboard({ name, slot }: { name: string; slot: string }) {
           <button className={`nav-item ${tab === 'students' ? 'active' : ''}`} onClick={() => setTab('students')} data-testid="button-caregiver-tab-students"><Users size={17} /><span>My students</span></button>
           <button className={`nav-item ${tab === 'credits' ? 'active' : ''}`} onClick={() => setTab('credits')} data-testid="button-caregiver-tab-credits"><Coins size={17} /><span>Credits</span></button>
         </nav>
+        {tab !== 'students' && (
+          <button className="nav-back-button" onClick={() => setTab('students')} data-testid="button-back-to-students">
+            <ArrowLeft size={16} />
+            <span>Back</span>
+          </button>
+        )}
         <p className="sidebar-quiet">Thank you for making room for someone else.</p>
       </aside>
       <main className="app-main">
@@ -516,6 +522,12 @@ function Sidebar({ activeTab, onTab, pet }: { activeTab: Tab; onTab: (tab: Tab) 
       <nav className="nav-list" aria-label="Main navigation">
         {items.map(({ id, label, icon: Icon }) => <button key={id} className={`nav-item ${activeTab === id ? 'active' : ''}`} onClick={() => onTab(id)} aria-current={activeTab === id ? 'page' : undefined} data-testid={`button-tab-${id}`}><Icon size={17} /><span>{id === 'chat' ? `Chat with ${pet}` : label}</span></button>)}
       </nav>
+      {activeTab !== 'calendar' && (
+        <button className="nav-back-button" onClick={() => onTab('calendar')} data-testid="button-back-to-calendar">
+          <ArrowLeft size={16} />
+          <span>Back</span>
+        </button>
+      )}
       <p className="sidebar-quiet">A private space, held gently.<br />Everything here stays local for now.</p>
     </aside>
   );
@@ -523,6 +535,8 @@ function Sidebar({ activeTab, onTab, pet }: { activeTab: Tab; onTab: (tab: Tab) 
 
 function CalendarView({ name, pet, onTab }: { name: string; pet: string; onTab: (tab: Tab) => void }) {
   const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+  const weekDates = [23, 24, 25, 26, 27, 28, 29];
+  const streakDays = weekDates.filter((date) => date >= 25).length;
   return (
     <div className="screen-transition">
       <div className="page-heading">
@@ -531,16 +545,28 @@ function CalendarView({ name, pet, onTab }: { name: string; pet: string; onTab: 
       </div>
       <div className="content-grid">
         <section className="content-card" aria-labelledby="calendar-heading">
-          <div className="card-heading"><h2 id="calendar-heading">Your gentle rhythm</h2><span>March 2025</span></div>
+          <div className="card-heading"><h2 id="calendar-heading">Your gentle rhythm</h2><span>August 2026</span></div>
           <div className="week-row" aria-label="Weekly wellbeing check-ins">
-            {days.map((day, index) => <div className={`day-cell ${index < 3 ? 'done' : ''} ${index === 3 ? 'today' : ''}`} key={`${day}-${index}`}><span>{day}</span><strong>{17 + index}</strong><span className="day-orb" aria-label={`${day} ${17 + index} check-in ${index < 3 ? 'complete' : index === 3 ? 'today' : 'not started'}`}>{index < 3 ? <Check size={14} /> : index === 3 ? <Sparkles size={14} /> : ''}</span></div>)}
+            {days.map((day, index) => {
+              const date = weekDates[index];
+              const isStreakDay = date >= 25;
+              return (
+                <div className={`day-cell ${isStreakDay ? 'done' : ''} ${date === 26 ? 'today' : ''}`} key={`${day}-${index}`}>
+                  <span>{day}</span>
+                  <strong>{date}</strong>
+                  <span className="day-orb" aria-label={`${day} ${date} check-in ${isStreakDay ? 'complete' : date === 26 ? 'today' : 'not started'}`}>
+                    {isStreakDay ? <Check size={14} /> : date === 26 ? <Sparkles size={14} /> : ''}
+                  </span>
+                </div>
+              );
+            })}
           </div>
-          <div style={{ marginTop: '2.2rem' }}><p className="eyebrow">This week</p><p className="muted-copy" style={{ fontSize: '.82rem', margin: '.45rem 0 0' }}>You have shown up for three quiet moments. That counts.</p></div>
+          <div style={{ marginTop: '2.2rem' }}><p className="eyebrow">This week</p><p className="muted-copy" style={{ fontSize: '.82rem', margin: '.45rem 0 0' }}>You have shown up for {streakDays} quiet moments. That counts.</p></div>
         </section>
         <aside className="content-card ember" aria-label="Current streak">
           <div className="card-heading"><h2>Streak</h2><span>Keep your rhythm</span></div>
-          <div className="streak-value"><strong>3</strong><span>days of noticing</span></div>
-          <div className="streak-line" aria-label="3 day streak progress"><i /></div>
+          <div className="streak-value"><strong>{streakDays}</strong><span>days of noticing</span></div>
+          <div className="streak-line" aria-label={`${streakDays} day streak progress`}><i /></div>
           <p style={{ fontSize: '.76rem', lineHeight: 1.55, marginTop: '1rem' }}>Your {pet || 'companion'} is proud of the pause you made.</p>
         </aside>
         <section className="content-card tinted quote-card">
@@ -655,7 +681,7 @@ function ChatView({ pet }: { pet: string }) {
     setDraft('');
     setThinking(true);
     window.setTimeout(() => {
-      setMessages((current) => [...current, { id: Date.now() + 1, from: 'vaani', text: clean.toLowerCase().includes('overwhelmed') ? `${pet} says: That sounds like a lot to hold. We can take one small piece at a time. What feels most urgent right now?` : `${pet} says: Thank you for putting that into words. Would it help to stay with the feeling, or look for one small next step?` }]);
+      setMessages((current) => [...current, { id: Date.now() + 1, from: 'vaani', text: clean.toLowerCase().includes('overwhelmed') ? `That sounds like a lot to hold. We can take one small piece at a time. What feels most urgent right now?` : `Thank you for putting that into words. Would it help to stay with the feeling, or look for one small next step?` }]);
       setThinking(false);
     }, 650);
   };
