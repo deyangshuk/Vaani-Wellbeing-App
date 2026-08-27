@@ -647,15 +647,16 @@ function VideoJournal({ pet }: { pet: string }) {
 
 function QuestionnaireView({ answersState, setAnswersState, completed, setCompleted, pet }: { answersState: Record<number, string>; setAnswersState: (next: Record<number, string>) => void; completed: boolean; setCompleted: (value: boolean) => void; pet: string }) {
   const [current, setCurrent] = useState(0);
+  const streakDays = [25, 26, 27, 28, 29].filter((date) => date >= 25).length;
   if (completed) {
-    return <div className="screen-transition"><div className="page-heading"><div><p className="eyebrow">Daily questionnaire</p><h1 className="display-font">You made a little room.</h1></div></div><section className="content-card completion-card"><div className="completion-seal"><Check size={27} /></div><h2 className="display-font">Well noticed.</h2><p>There is no score to this. Just seven moments of checking in with yourself. Your three-day streak is still glowing.</p><PrimaryButton onClick={() => { setCompleted(false); setCurrent(0); }} testId="button-revisit-questionnaire">Revisit my answers <ArrowRight size={16} /></PrimaryButton></section><VideoJournal pet={pet} /></div>;
+    return <div className="screen-transition"><div className="page-heading"><div><p className="eyebrow">Daily questionnaire</p><h1 className="display-font">You made a little room.</h1></div></div><section className="content-card completion-card"><div className="completion-seal"><Check size={27} /></div><h2 className="display-font">Well noticed.</h2><p>There is no score to this. Just seven moments of checking in with yourself. Your {streakDays}-day streak is still glowing.</p><PrimaryButton onClick={() => { setCompleted(false); setCurrent(0); }} testId="button-revisit-questionnaire">Revisit my answers <ArrowRight size={16} /></PrimaryButton></section><VideoJournal pet={pet} /></div>;
   }
   const selected = answersState[current];
   const choose = (value: string) => setAnswersState({ ...answersState, [current]: value });
   const next = () => current === questions.length - 1 ? setCompleted(true) : setCurrent(current + 1);
   return (
     <div className="screen-transition">
-      <div className="page-heading"><div><p className="eyebrow">Daily questionnaire · 2 minutes</p><h1 className="display-font">A moment to notice.</h1><p>Answer with your first instinct. This is for you, not for a grade.</p></div><div className="content-card ember" style={{ padding: '.8rem 1rem', minWidth: '140px' }}><span style={{ fontSize: '.68rem', display: 'block' }}>Current streak</span><strong style={{ fontFamily: 'var(--app-font-serif)', fontSize: '2rem' }}>3 days</strong></div></div>
+      <div className="page-heading"><div><p className="eyebrow">Daily questionnaire · 2 minutes</p><h1 className="display-font">A moment to notice.</h1><p>Answer with your first instinct. This is for you, not for a grade.</p></div><div className="content-card ember" style={{ padding: '.8rem 1rem', minWidth: '140px' }}><span style={{ fontSize: '.68rem', display: 'block' }}>Current streak</span><strong style={{ fontFamily: 'var(--app-font-serif)', fontSize: '2rem' }}>{streakDays} days</strong></div></div>
       <section className="content-card question-card" aria-labelledby="question-title">
         <span className="question-number">QUESTION {current + 1} OF {questions.length}</span>
         <h2 id="question-title">{questions[current]}</h2>
