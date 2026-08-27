@@ -1,0 +1,13 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Start Mockup Canvas",
+			"type": "shell",
+			"command": "$env:PORT='8081'; $env:BASE_PATH='/__mockup'; corepack pnpm --filter @workspace/mockup-sandbox run dev",
+			"isBackground": true,
+			"problemMatcher": [],
+			"group": "build"
+		}
+	]
+}

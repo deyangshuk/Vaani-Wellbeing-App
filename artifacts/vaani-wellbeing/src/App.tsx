@@ -220,7 +220,7 @@ function RoleChoice({ onStudent, onCaregiver }: { onStudent: () => void; onCareg
           <Brand />
           <p className="eyebrow" style={{ marginTop: '2.8rem' }}>A space made for you</p>
           <h1 className="display-font">How shall we meet?</h1>
-          <p className="muted-copy">Choose the doorway that fits your day. You can always change your mind later.</p>
+          <p className="muted-copy">Choose your role here.</p>
         </div>
         <div className="role-grid">
           <button className="role-card student" onClick={onStudent} data-testid="button-role-student">
@@ -321,10 +321,10 @@ function DetailsStep({ name, setName, gender, setGender, age, setAge, onNext, on
 
 function PetStep({ pet, setPet, onNext, onBack }: { pet: string; setPet: (value: string) => void; onNext: () => void; onBack: () => void }) {
   const pets = [
-    { name: 'Baku', quality: 'Curious and bright' },
-    { name: 'Garuda', quality: 'Brave and grounding' },
-    { name: 'Kitsune', quality: 'Calm and observant' },
-    { name: 'Baihu', quality: 'Quietly protective' },
+    { name: 'Baku', quality: 'The Japanese nightmare-eater' },
+    { name: 'Garuda', quality: 'Known for its strength and speed' },
+    { name: 'Kitsune', quality: 'Represents intelligence and protection' },
+    { name: 'Baihu', quality: 'The giver of justice' },
   ];
   return (
     <main className="flow-screen screen-transition">
@@ -526,7 +526,7 @@ function CalendarView({ name, pet, onTab }: { name: string; pet: string; onTab: 
   return (
     <div className="screen-transition">
       <div className="page-heading">
-        <div><p className="eyebrow">Good morning{name ? `, ${name}` : ''}</p><h1 className="display-font">Make room for today.</h1><p>A small check-in can be enough. You do not have to solve everything at once.</p></div>
+        <div><p className="eyebrow">Welcome{name ? `, ${name}` : ''}</p><h1 className="display-font">Make room for today.</h1><p>A small check-in can be enough. You do not have to solve everything at once.</p></div>
         <PrimaryButton onClick={() => onTab('questionnaire')} testId="button-start-checkin">Start today’s check-in <ArrowRight size={16} /></PrimaryButton>
       </div>
       <div className="content-grid">

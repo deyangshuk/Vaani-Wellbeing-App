@@ -7,9 +7,9 @@
     {
       "type": "chrome",
       "request": "launch",
-      "name": "Launch Vaani in Chrome",
-      "url": "http://localhost:4173",
-      "webRoot": "${workspaceFolder}/artifacts/vaani-wellbeing"
+      "name": "Launch Mockup Canvas in Chrome",
+      "url": "http://localhost:8081/__mockup",
+      "webRoot": "${workspaceFolder}/artifacts/mockup-sandbox"
     }
   ]
 }
